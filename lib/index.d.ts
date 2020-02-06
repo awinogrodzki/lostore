@@ -6,8 +6,9 @@ export declare type ActionReducers<S, T extends {
 }> = {
     [K in keyof T]: T[K];
 };
+declare type PromiseOrVoid<T> = T extends Promise<any> ? Promise<void> : void;
 export declare type Actions<S, T extends ActionReducers<S, any>> = {
-    [K in keyof T]: (...args: Parameters<T[K]>) => void;
+    [K in keyof T]: (...args: Parameters<T[K]>) => PromiseOrVoid<ReturnType<T[K]>>;
 };
 export interface StoreProviderProps<S> {
     initialState?: S;
@@ -15,3 +16,4 @@ export interface StoreProviderProps<S> {
 export declare const createStoreHook: <S, T extends {
     [type: string]: ActionReducerCreator<S, any>;
 }>(reducers: ActionReducers<S, T>, initialState: S) => [React.FunctionComponent<StoreProviderProps<S>>, () => [S, Actions<S, T>]];
+export {};

@@ -9,8 +9,10 @@ export type ActionReducers<S, T extends { [type: string]: ActionReducerCreator<S
   [K in keyof T]: T[K];
 };
 
+type PromiseOrVoid<T> = T extends Promise<any> ? Promise<void> : void;
+
 export type Actions<S, T extends ActionReducers<S, any>> = {
-  [K in keyof T]: (...args: Parameters<T[K]>) => void;
+  [K in keyof T]: (...args: Parameters<T[K]>) => PromiseOrVoid<ReturnType<T[K]>>
 };
 
 export interface StoreProviderProps<S> {
