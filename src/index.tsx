@@ -13,6 +13,10 @@ export type Actions<S, T extends ActionReducers<S, any>> = {
   [K in keyof T]: (...args: Parameters<T[K]>) => void;
 };
 
+export interface StoreProviderProps<S> {
+  initialState?: S
+}
+
 export const createStoreHook = <S, T extends { [type: string]: ActionReducerCreator<S, any> }>(
   reducers: ActionReducers<S, T>,
   initialState: S
@@ -29,8 +33,8 @@ export const createStoreHook = <S, T extends { [type: string]: ActionReducerCrea
     },
   });
 
-  const StoreProvider: React.FunctionComponent = ({ children }) => {
-    const [state, setState] = React.useState(initialState);
+  const StoreProvider: React.FunctionComponent<StoreProviderProps<S>> = ({ children, initialState: initialStateFromProps }) => {
+    const [state, setState] = React.useState(initialStateFromProps ?? initialState);
 
     return <StoreContext.Provider value={{ state, setState }}>{children}</StoreContext.Provider>;
   };

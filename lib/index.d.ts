@@ -9,6 +9,9 @@ export declare type ActionReducers<S, T extends {
 export declare type Actions<S, T extends ActionReducers<S, any>> = {
     [K in keyof T]: (...args: Parameters<T[K]>) => void;
 };
+export interface StoreProviderProps<S> {
+    initialState?: S;
+}
 export declare const createStoreHook: <S, T extends {
     [type: string]: ActionReducerCreator<S, any>;
-}>(reducers: ActionReducers<S, T>, initialState: S) => [React.FunctionComponent<{}>, () => [S, Actions<S, T>]];
+}>(reducers: ActionReducers<S, T>, initialState: S) => [React.FunctionComponent<StoreProviderProps<S>>, () => [S, Actions<S, T>]];
