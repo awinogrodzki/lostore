@@ -116,7 +116,33 @@ describe('index', () => {
     await act(async () => {
       const { increment } = result.current[1];
 
-      expect(increment()).rejects.toEqual(new Error('useStore hook used outside StoreProvider. Please make sure you have wrapped components that use useStore hook with StoreProvider.'));
+      expect(increment()).rejects.toEqual(
+        new Error(
+          'useStore hook used outside StoreProvider. Please make sure you have wrapped components that use useStore hook with StoreProvider.'
+        )
+      );
     });
+  });
+
+  it('should set initial value to given initial state', async () => {
+    const initialState = 'Initial state';
+    const [StoreProvider, useStore] = createStoreHook({}, initialState);
+    const wrapper: React.FunctionComponent = ({ children }) => (
+      <StoreProvider>{children}</StoreProvider>
+    );
+    const { result } = renderHook(() => useStore(), { wrapper });
+
+    expect(result.current[0]).toBe('Initial state');
+  });
+
+  it('should prefer initial state given as store provider prop over the one given during hook creation', async () => {
+    const initialState = 'Initial state';
+    const [StoreProvider, useStore] = createStoreHook({}, initialState);
+    const wrapper: React.FunctionComponent = ({ children }) => (
+      <StoreProvider initialState="Initial state from props">{children}</StoreProvider>
+    );
+    const { result } = renderHook(() => useStore(), { wrapper });
+
+    expect(result.current[0]).toBe('Initial state from props');
   });
 });
