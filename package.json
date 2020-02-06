@@ -10,10 +10,7 @@
   "author": "https://github.com/awinogrodzki",
   "repository": "https://github.com/awinogrodzki/lostore",
   "license": "MIT",
-  "dependencies": {
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@testing-library/react-hooks": "^3.2.1",
     "@types/enzyme": "^3.10.4",
@@ -26,5 +23,9 @@
     "prettier": "^1.19.1",
     "ts-jest": "^25.2.0",
     "typescript": "^3.7.5"
+  },
+  "peerDependencies": {
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0"
   }
 }
