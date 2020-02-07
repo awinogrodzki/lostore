@@ -1,69 +1,69 @@
 import * as React from 'react';
+import {
+  ActionReducerCreator,
+  ActionReducers,
+  Actions,
+  ActionReducer,
+  StoreContext,
+  StoreProviderProps,
+  AsyncActionReducer,
+} from './types';
+import { createStoreContext } from './context';
+import { createStoreProvider } from './provider';
 
-export type ActionReducer<S> = (state: S) => S;
-export type ActionReducerCreator<
-  S,
-  T extends (...args: any[]) => ActionReducer<S> | Promise<ActionReducer<S>>
-> = (...args: Parameters<T>) => ReturnType<T>;
-export type ActionReducers<S, T extends { [type: string]: ActionReducerCreator<S, any> }> = {
-  [K in keyof T]: T[K];
+const getResultFromAsyncReducer = async <S extends any>(
+  state: S,
+  reducerPromise: AsyncActionReducer<S>
+): Promise<S> => {
+  const reducer = await reducerPromise;
+  const result = reducer(state);
+
+  if (result instanceof Promise) {
+    return await result;
+  }
+
+  return result;
 };
-
-type PromiseOrVoid<T> = T extends Promise<any> ? Promise<void> : void;
-
-export type Actions<S, T extends ActionReducers<S, any>> = {
-  [K in keyof T]: (...args: Parameters<T[K]>) => PromiseOrVoid<ReturnType<T[K]>>
-};
-
-export interface StoreProviderProps<S> {
-  initialState?: S
-}
 
 export const createStoreHook = <S, T extends { [type: string]: ActionReducerCreator<S, any> }>(
   reducers: ActionReducers<S, T>,
-  initialState: S
+  initialState: S,
+  StoreContext: StoreContext<S> = createStoreContext(initialState),
+  StoreProvider: React.FunctionComponent<StoreProviderProps<S>> = createStoreProvider(
+    StoreContext,
+    initialState
+  )
 ) => {
-  const StoreContext = React.createContext<{
-    state: S;
-    setState: React.Dispatch<React.SetStateAction<S>>;
-  }>({
-    state: initialState,
-    setState: () => {
-      throw new Error(
-        'useStore hook used outside StoreProvider. Please make sure you have wrapped components that use useStore hook with StoreProvider.'
-      );
-    },
-  });
-
-  const StoreProvider: React.FunctionComponent<StoreProviderProps<S>> = ({ children, initialState: initialStateFromProps }) => {
-    const [state, setState] = React.useState(initialStateFromProps ?? initialState);
-
-    return <StoreContext.Provider value={{ state, setState }}>{children}</StoreContext.Provider>;
-  };
-
   const useStore = (): [S, Actions<S, T>] => {
     const { state, setState } = React.useContext(StoreContext);
 
     const actions = Object.entries(reducers).reduce<Actions<S, T>>(
       (actions, [actionType, reducerCreator]) => ({
         ...actions,
-        [actionType]: async (...args) => {
+        [actionType]: (...args): void | Promise<void> => {
           const reducer: ActionReducer<S> | Promise<ActionReducer<S>> = reducerCreator(...args);
-          let result: S;
+
+          const setStateIfChanged = (value: S) => {
+            if (value === state) {
+              return;
+            }
+
+            setState(value);
+          };
 
           if (reducer instanceof Promise) {
-            const reducerFromPromise = await reducer;
-            result = reducerFromPromise(state);
-          } else {
-            result = reducer(state);
+            return getResultFromAsyncReducer(state, reducer).then(result => {
+              setStateIfChanged(result);
+            });
           }
+
+          const result = reducer(state);
 
           if (result instanceof Promise) {
-            setState(await result);
-            return;
+            return result.then(value => setStateIfChanged(value));
           }
 
-          setState(result);
+          setStateIfChanged(result);
         },
       }),
       {} as Actions<S, T>

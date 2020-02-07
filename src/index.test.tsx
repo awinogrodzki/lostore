@@ -1,6 +1,15 @@
 import * as React from 'react';
 import { createStoreHook } from '.';
 import { renderHook, act } from '@testing-library/react-hooks';
+import { StoreContextValue, StoreProviderProps } from './types';
+
+const dispatchAsyncAndUpdate = async (callback: () => Promise<void | undefined>) => {
+  await act(callback);
+}
+
+const dispatchAndUpdate = (callback: () => void | undefined) => {
+  act(callback);
+}
 
 describe('index', () => {
   it('should return initial state', () => {
@@ -14,7 +23,7 @@ describe('index', () => {
     expect(result.current[0]).toBe('Hello world!');
   });
 
-  it('should update state by calling action', async () => {
+  it('should update state by calling action', () => {
     const initialState = 0;
     const [StoreProvider, useStore] = createStoreHook(
       {
@@ -26,12 +35,9 @@ describe('index', () => {
       <StoreProvider>{children}</StoreProvider>
     );
     const { result } = renderHook(() => useStore(), { wrapper });
-
-    act(() => {
-      const { increment } = result.current[1];
-
-      increment();
-    });
+    const { increment } = result.current[1];
+    
+    dispatchAndUpdate(() => increment());
 
     expect(result.current[0]).toBe(1);
   });
@@ -48,12 +54,9 @@ describe('index', () => {
       <StoreProvider>{children}</StoreProvider>
     );
     const { result } = renderHook(() => useStore(), { wrapper });
-
-    await act(async () => {
-      const { increment } = result.current[1];
-
-      await increment();
-    });
+    const { increment } = result.current[1];
+    
+    await dispatchAsyncAndUpdate(() => increment());
 
     expect(result.current[0]).toBe(1);
   });
@@ -70,12 +73,9 @@ describe('index', () => {
       <StoreProvider>{children}</StoreProvider>
     );
     const { result } = renderHook(() => useStore(), { wrapper });
-
-    await act(async () => {
-      const { increment } = result.current[1];
-
-      await increment();
-    });
+    const { increment } = result.current[1];
+    
+    await dispatchAsyncAndUpdate(() => increment());
 
     expect(result.current[0]).toBe(1);
   });
@@ -92,12 +92,9 @@ describe('index', () => {
       <StoreProvider>{children}</StoreProvider>
     );
     const { result } = renderHook(() => useStore(), { wrapper });
-
-    await act(async () => {
-      const { increment } = result.current[1];
-
-      await increment();
-    });
+    const { increment } = result.current[1];
+    
+    await dispatchAsyncAndUpdate(() => increment());
 
     expect(result.current[0]).toBe(1);
   });
@@ -144,5 +141,53 @@ describe('index', () => {
     const { result } = renderHook(() => useStore(), { wrapper });
 
     expect(result.current[0]).toBe('Initial state from props');
+  });
+
+  it('should not update context value if the value has not changed', () => {
+    const mockSetState = jest.fn();
+    const initialState = 0;
+    const StoreContextMock = React.createContext<StoreContextValue<number>>({
+      state: initialState,
+      setState: () => {},
+    });
+    const StoreProviderMock: React.FunctionComponent<StoreProviderProps<number>> = ({
+      children,
+    }) => {
+      const [state, setState] = React.useState(initialState);
+
+      return (
+        <StoreContextMock.Provider
+          value={{
+            state,
+            setState: value => {
+              setState(value);
+              mockSetState(value);
+            },
+          }}
+        >
+          {children}
+        </StoreContextMock.Provider>
+      );
+    };
+
+    const [, useStore] = createStoreHook(
+      {
+        updateState: (value: number) => () => value,
+      },
+      initialState,
+      StoreContextMock,
+      StoreProviderMock
+    );
+    const wrapper: React.FunctionComponent = ({ children }) => (
+      <StoreProviderMock>{children}</StoreProviderMock>
+    );
+    const { result } = renderHook(() => useStore(), { wrapper });
+    
+    dispatchAndUpdate(() => result.current[1].updateState(1));
+    dispatchAndUpdate(() => result.current[1].updateState(2));
+    dispatchAndUpdate(() => result.current[1].updateState(1));
+    dispatchAndUpdate(() => result.current[1].updateState(1));
+
+    expect(mockSetState).toHaveBeenCalledTimes(3);
   });
 });
