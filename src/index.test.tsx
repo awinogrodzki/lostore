@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { createStoreHook } from '.';
 import { renderHook, act } from '@testing-library/react-hooks';
-import { StoreContextValue, StoreProviderProps } from './types';
 
 const dispatchAsyncAndUpdate = async (callback: () => Promise<void | undefined>) => {
   await act(callback);
@@ -42,49 +41,11 @@ describe('index', () => {
     expect(result.current[0]).toBe(1);
   });
 
-  it('should update state with async reducer', async () => {
-    const initialState = 0;
-    const [StoreProvider, useStore] = createStoreHook(
-      {
-        increment: () => async (state: number) => state + 1,
-      },
-      initialState
-    );
-    const wrapper: React.FunctionComponent = ({ children }) => (
-      <StoreProvider>{children}</StoreProvider>
-    );
-    const { result } = renderHook(() => useStore(), { wrapper });
-    const { increment } = result.current[1];
-    
-    await dispatchAsyncAndUpdate(() => increment());
-
-    expect(result.current[0]).toBe(1);
-  });
-
   it('should update state with async action', async () => {
     const initialState = 0;
     const [StoreProvider, useStore] = createStoreHook(
       {
         increment: async () => (state: number) => state + 1,
-      },
-      initialState
-    );
-    const wrapper: React.FunctionComponent = ({ children }) => (
-      <StoreProvider>{children}</StoreProvider>
-    );
-    const { result } = renderHook(() => useStore(), { wrapper });
-    const { increment } = result.current[1];
-    
-    await dispatchAsyncAndUpdate(() => increment());
-
-    expect(result.current[0]).toBe(1);
-  });
-
-  it('should update state with async action and async reducer', async () => {
-    const initialState = 0;
-    const [StoreProvider, useStore] = createStoreHook(
-      {
-        increment: async () => async (state: number) => state + 1,
       },
       initialState
     );
@@ -143,51 +104,30 @@ describe('index', () => {
     expect(result.current[0]).toBe('Initial state from props');
   });
 
-  it('should not update context value if the value has not changed', () => {
-    const mockSetState = jest.fn();
-    const initialState = 0;
-    const StoreContextMock = React.createContext<StoreContextValue<number>>({
-      state: initialState,
-      setState: () => {},
-    });
-    const StoreProviderMock: React.FunctionComponent<StoreProviderProps<number>> = ({
-      children,
-    }) => {
-      const [state, setState] = React.useState(initialState);
+  it('should not overwrite state between updates', () => {
+    const initialState: string[] = [];
 
-      return (
-        <StoreContextMock.Provider
-          value={{
-            state,
-            setState: value => {
-              setState(value);
-              mockSetState(value);
-            },
-          }}
-        >
-          {children}
-        </StoreContextMock.Provider>
-      );
-    };
-
-    const [, useStore] = createStoreHook(
+    const [StoreProvider, useStore] = createStoreHook(
       {
-        updateState: (value: number) => () => value,
+        addString: (value: string) => (state: string[]) => [...state, value],
       },
-      initialState,
-      StoreContextMock,
-      StoreProviderMock
+      initialState
     );
     const wrapper: React.FunctionComponent = ({ children }) => (
-      <StoreProviderMock>{children}</StoreProviderMock>
+      <StoreProvider>{children}</StoreProvider>
     );
     const { result } = renderHook(() => useStore(), { wrapper });
     
-    dispatchAndUpdate(() => result.current[1].updateState(1));
-    dispatchAndUpdate(() => result.current[1].updateState(2));
-    dispatchAndUpdate(() => result.current[1].updateState(1));
-    dispatchAndUpdate(() => result.current[1].updateState(1));
+    dispatchAndUpdate(() => {
+      result.current[1].addString('first string');
+      result.current[1].addString('second string');
+      result.current[1].addString('third string');
+    });
 
-    expect(mockSetState).toHaveBeenCalledTimes(3);
+    expect(result.current[0]).toEqual([
+      'first string',
+      'second string',
+      'third string'
+    ]);
   });
 });

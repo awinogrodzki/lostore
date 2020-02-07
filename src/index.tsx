@@ -6,24 +6,9 @@ import {
   ActionReducer,
   StoreContext,
   StoreProviderProps,
-  AsyncActionReducer,
 } from './types';
 import { createStoreContext } from './context';
 import { createStoreProvider } from './provider';
-
-const getResultFromAsyncReducer = async <S extends any>(
-  state: S,
-  reducerPromise: AsyncActionReducer<S>
-): Promise<S> => {
-  const reducer = await reducerPromise;
-  const result = reducer(state);
-
-  if (result instanceof Promise) {
-    return await result;
-  }
-
-  return result;
-};
 
 export const createStoreHook = <S, T extends { [type: string]: ActionReducerCreator<S, any> }>(
   reducers: ActionReducers<S, T>,
@@ -43,27 +28,13 @@ export const createStoreHook = <S, T extends { [type: string]: ActionReducerCrea
         [actionType]: (...args): void | Promise<void> => {
           const reducer: ActionReducer<S> | Promise<ActionReducer<S>> = reducerCreator(...args);
 
-          const setStateIfChanged = (value: S) => {
-            if (value === state) {
-              return;
-            }
-
-            setState(value);
-          };
-
           if (reducer instanceof Promise) {
-            return getResultFromAsyncReducer(state, reducer).then(result => {
-              setStateIfChanged(result);
-            });
+            return reducer.then(reducerFromPromise => {
+              setState(currentState => reducerFromPromise(currentState));
+            })
           }
 
-          const result = reducer(state);
-
-          if (result instanceof Promise) {
-            return result.then(value => setStateIfChanged(value));
-          }
-
-          setStateIfChanged(result);
+          setState(currentState => reducer(currentState));
         },
       }),
       {} as Actions<S, T>
