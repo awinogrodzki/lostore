@@ -1,14 +1,9 @@
 import * as React from 'react';
 import { createStoreHook } from '.';
 import { renderHook, act } from '@testing-library/react-hooks';
+import { dispatchAndUpdate, dispatchAsyncAndUpdate } from './test/utils';
 
-const dispatchAsyncAndUpdate = async (callback: () => Promise<void | undefined>) => {
-  await act(callback);
-}
 
-const dispatchAndUpdate = (callback: () => void | undefined) => {
-  act(callback);
-}
 
 describe('index', () => {
   it('should return initial state', () => {
@@ -130,4 +125,5 @@ describe('index', () => {
       'third string'
     ]);
   });
+
 });
