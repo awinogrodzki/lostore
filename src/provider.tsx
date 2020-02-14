@@ -31,22 +31,24 @@ export const createStoreProvider = <S extends any>(
   StoreContext: StoreContext<S>,
   initialState: S
 ) => {
+  const MemoizedStoreProvider = React.memo<StoreContextValue<S> & { children: React.ReactNode }>(
+    ({ state, setState, children }) => {
+      return <StoreContext.Provider value={{ state, setState }}>{children}</StoreContext.Provider>;
+    },
+    (prevProps, nextProps) => isStateEqual(prevProps.state, nextProps.state)
+  );
+
   const StoreProvider: React.FunctionComponent<StoreProviderProps<S>> = ({
     children,
     initialState: initialStateFromProps,
   }) => {
     const [state, setState] = React.useState(initialStateFromProps ?? initialState);
 
-    const MemoizedStoreProvider = React.memo<StoreContextValue<S>>(
-      ({ state, setState }) => {
-        return (
-          <StoreContext.Provider value={{ state, setState }}>{children}</StoreContext.Provider>
-        );
-      },
-      (prevProps, nextProps) => isStateEqual(prevProps.state, nextProps.state)
+    return (
+      <MemoizedStoreProvider state={state} setState={setState}>
+        {children}
+      </MemoizedStoreProvider>
     );
-
-    return <MemoizedStoreProvider state={state} setState={setState} />;
   };
 
   return StoreProvider;
