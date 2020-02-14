@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "rm -rf lib && tsc",
-    "test": "jest src"
+    "test": "jest src --coverage"
   },
   "author": "https://github.com/awinogrodzki",
   "repository": "https://github.com/awinogrodzki/lostore",

@@ -3,8 +3,6 @@ import { createStoreHook } from '.';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { dispatchAndUpdate, dispatchAsyncAndUpdate } from './test/utils';
 
-
-
 describe('index', () => {
   it('should return initial state', () => {
     const initialState = 'Hello world!';
@@ -30,7 +28,7 @@ describe('index', () => {
     );
     const { result } = renderHook(() => useStore(), { wrapper });
     const { increment } = result.current[1];
-    
+
     dispatchAndUpdate(() => increment());
 
     expect(result.current[0]).toBe(1);
@@ -49,7 +47,7 @@ describe('index', () => {
     );
     const { result } = renderHook(() => useStore(), { wrapper });
     const { increment } = result.current[1];
-    
+
     await dispatchAsyncAndUpdate(() => increment());
 
     expect(result.current[0]).toBe(1);
@@ -112,18 +110,91 @@ describe('index', () => {
       <StoreProvider>{children}</StoreProvider>
     );
     const { result } = renderHook(() => useStore(), { wrapper });
-    
+
     dispatchAndUpdate(() => {
       result.current[1].addString('first string');
       result.current[1].addString('second string');
       result.current[1].addString('third string');
     });
 
-    expect(result.current[0]).toEqual([
-      'first string',
-      'second string',
-      'third string'
-    ]);
+    expect(result.current[0]).toEqual(['first string', 'second string', 'third string']);
   });
 
+  it('should combine multiple action reducers', () => {
+    type State = {
+      count: number;
+      strings: string[];
+      element: {
+        position: {
+          x: number;
+          y: number;
+        };
+      };
+    };
+    const initialState: State = {
+      count: 0,
+      strings: [],
+      element: {
+        position: {
+          x: 0,
+          y: 0,
+        },
+      },
+    };
+
+    const [StoreProvider, useStore] = createStoreHook(
+      {
+        count: {
+          countStrings: () => (state: number, gridState: State) => {
+            return gridState.strings.length;
+          },
+        },
+        strings: {
+          addString: (value: string) => (state: string[], gridState: State) => {
+            return [...state, `${value}-${gridState.count}`];
+          },
+        },
+        element: {
+          position: {
+            updatePosition: (x: number, y: number) => (
+              pos: { x: number; y: number },
+              rootState: State
+            ) => ({
+              x: rootState.count + pos.x + x,
+              y: rootState.count + pos.y + y,
+            }),
+          },
+        },
+      },
+      initialState
+    );
+    const wrapper: React.FunctionComponent = ({ children }) => (
+      <StoreProvider>{children}</StoreProvider>
+    );
+    const { result } = renderHook(() => useStore(), { wrapper });
+
+    dispatchAndUpdate(() => {
+      result.current[1].strings.addString('string');
+      result.current[1].count.countStrings();
+      result.current[1].strings.addString('string');
+      result.current[1].count.countStrings();
+      result.current[1].strings.addString('string');
+      result.current[1].count.countStrings();
+      result.current[1].element.position.updatePosition(1, 2);
+      result.current[1].strings.addString('string');
+      result.current[1].count.countStrings();
+      result.current[1].element.position.updatePosition(4, 8);
+    });
+
+    expect(result.current[0]).toEqual({
+      count: 4,
+      strings: ['string-0', 'string-1', 'string-2', 'string-3'],
+      element: {
+        position: {
+          x: 12,
+          y: 17,
+        },
+      },
+    });
+  });
 });
