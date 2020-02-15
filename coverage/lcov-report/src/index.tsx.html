@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>51/51</span>
+                <span class='fraction'>49/49</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>18/18</span>
+                <span class='fraction'>17/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>40/40</span>
+                <span class='fraction'>38/38</span>
             </div>
         
             
@@ -173,7 +173,10 @@
 <a name='L114'></a><a href='#L114'>114</a>
 <a name='L115'></a><a href='#L115'>115</a>
 <a name='L116'></a><a href='#L116'>116</a>
-<a name='L117'></a><a href='#L117'>117</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -240,6 +243,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -267,14 +274,15 @@
 <span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">2x</span>
@@ -283,8 +291,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">9x</span>
@@ -351,10 +357,14 @@ const mapReducersToActions = &lt;S, RS, T&gt;(
   };
 };
 &nbsp;
-type MapStateToProps&lt;S, P&gt; = (state: S) =&gt; P;
-type MapActionsToProps&lt;S, T extends ActionReducers&lt;S, T&gt;, P&gt; = (actions: Actions&lt;S, T&gt;) =&gt; P;
+type MapStateToProps&lt;S, P, OP&gt; = (state: S, ownProps: OP) =&gt; P;
+type MapActionsToProps&lt;S, T extends ActionReducers&lt;S, T&gt;, P, OP&gt; = (
+  actions: Actions&lt;S, T&gt;,
+  ownProps: OP
+) =&gt; P;
 &nbsp;
 type ExcludeFromProps&lt;P extends {}, EP extends {}&gt; = Pick&lt;P, Exclude&lt;keyof P, keyof EP&gt;&gt;;
+type OwnProps&lt;P, SP, AP&gt; = ExcludeFromProps&lt;P, AP &amp; SP&gt;;
 &nbsp;
 export const createStore = &lt;S, T extends ActionReducers&lt;S, T&gt;&gt;(
   reducers: T,
@@ -380,27 +390,26 @@ export const createStore = &lt;S, T extends ActionReducers&lt;S, T&gt;&gt;(
     return [state, actions];
   };
 &nbsp;
-  const connectStore = &lt;SP, AP&gt;(
-    mapStateToProps: MapStateToProps&lt;S, SP&gt;,
-    mapActionsToProps: MapActionsToProps&lt;S, T, AP&gt;
-  ) =&gt; &lt;
-    C extends React.FunctionComponent,
-    P = C extends React.FunctionComponent&lt;infer CP&gt; ? CP : never
+  const connectStore = &lt;
+    SP extends Partial&lt;P&gt;,
+    AP extends Partial&lt;P&gt;,
+    OP extends Partial&lt;P&gt;,
+    P extends {} = SP &amp; AP &amp; OP
   &gt;(
-    Component: C
+    Component: React.FunctionComponent&lt;P&gt;,
+    mapStateToProps: MapStateToProps&lt;S, SP, OP&gt;,
+    mapActionsToProps: MapActionsToProps&lt;S, T, AP, OP&gt;,
+    propsAreEqual?: (prevProps: P, nextProps: P) =&gt; boolean
   ) =&gt; {
-    const MemoizedComponent = React.memo(Component);
-    type PropsWithoutActionAndStateProps = ExcludeFromProps&lt;P, SP &amp; AP&gt;;
+    const MemoizedComponent = React.memo(Component, propsAreEqual);
 &nbsp;
-    const ComponentContainer = (props: PropsWithoutActionAndStateProps) =&gt; {
+    return (props: OwnProps&lt;P, SP, AP&gt;) =&gt; {
       const [state, actions] = useStore();
-      const stateProps = mapStateToProps(state);
-      const actionProps = mapActionsToProps(actions);
+      const stateProps = mapStateToProps(state, props as OP);
+      const actionProps = mapActionsToProps(actions, props as OP);
 &nbsp;
-      return &lt;MemoizedComponent {...props} {...stateProps} {...actionProps} /&gt;;
+      return &lt;MemoizedComponent {...(props as P)} {...stateProps} {...actionProps} /&gt;;
     };
-&nbsp;
-    return ComponentContainer;
   };
 &nbsp;
   return { StoreProvider, useStore, connectStore };
@@ -412,7 +421,7 @@ export const createStore = &lt;S, T extends ActionReducers&lt;S, T&gt;&gt;(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Sat Feb 15 2020 16:47:21 GMT+0100 (Central European Standard Time)
+                at Sun Feb 16 2020 00:17:05 GMT+0100 (Central European Standard Time)
             </div>
         </div>
         <script src="../prettify.js"></script>
