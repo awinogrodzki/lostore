@@ -60,10 +60,14 @@ const mapReducersToActions = <S, RS, T>(
   };
 };
 
-type MapStateToProps<S, P> = (state: S) => P;
-type MapActionsToProps<S, T extends ActionReducers<S, T>, P> = (actions: Actions<S, T>) => P;
+type MapStateToProps<S, P, OP> = (state: S, ownProps: OP) => P;
+type MapActionsToProps<S, T extends ActionReducers<S, T>, P, OP> = (
+  actions: Actions<S, T>,
+  ownProps: OP
+) => P;
 
 type ExcludeFromProps<P extends {}, EP extends {}> = Pick<P, Exclude<keyof P, keyof EP>>;
+type OwnProps<P, SP, AP> = ExcludeFromProps<P, AP & SP>;
 
 export const createStore = <S, T extends ActionReducers<S, T>>(
   reducers: T,
@@ -89,27 +93,25 @@ export const createStore = <S, T extends ActionReducers<S, T>>(
     return [state, actions];
   };
 
-  const connectStore = <SP, AP>(
-    mapStateToProps: MapStateToProps<S, SP>,
-    mapActionsToProps: MapActionsToProps<S, T, AP>
-  ) => <
-    C extends React.FunctionComponent,
-    P = C extends React.FunctionComponent<infer CP> ? CP : never
+  const connectStore = <
+    SP extends Partial<P>,
+    AP extends Partial<P>,
+    OP extends Partial<P>,
+    P = SP & AP & OP
   >(
-    Component: C
+    Component: React.FunctionComponent<P>,
+    mapStateToProps: MapStateToProps<S, SP, OP>,
+    mapActionsToProps: MapActionsToProps<S, T, AP, OP>
   ) => {
     const MemoizedComponent = React.memo(Component);
-    type PropsWithoutActionAndStateProps = ExcludeFromProps<P, SP & AP>;
 
-    const ComponentContainer = (props: PropsWithoutActionAndStateProps) => {
+    return (props: OwnProps<P, SP, AP>) => {
       const [state, actions] = useStore();
-      const stateProps = mapStateToProps(state);
-      const actionProps = mapActionsToProps(actions);
+      const stateProps = mapStateToProps(state, props as OP);
+      const actionProps = mapActionsToProps(actions, props as OP);
 
       return <MemoizedComponent {...props} {...stateProps} {...actionProps} />;
     };
-
-    return ComponentContainer;
   };
 
   return { StoreProvider, useStore, connectStore };

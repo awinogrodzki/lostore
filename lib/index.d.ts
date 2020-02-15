@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { ActionReducers, Actions, StoreContext, StoreProviderProps } from './types';
-declare type MapStateToProps<S, P> = (state: S) => P;
-declare type MapActionsToProps<S, T extends ActionReducers<S, T>, P> = (actions: Actions<S, T>) => P;
+declare type MapStateToProps<S, P, OP> = (state: S, ownProps: OP) => P;
+declare type MapActionsToProps<S, T extends ActionReducers<S, T>, P, OP> = (actions: Actions<S, T>, ownProps: OP) => P;
 export declare const createStore: <S, T extends ActionReducers<S, T, S>>(reducers: T, initialState: S, StoreContext?: StoreContext<S>, StoreProvider?: React.FunctionComponent<StoreProviderProps<S>>) => {
     StoreProvider: React.FunctionComponent<StoreProviderProps<S>>;
     useStore: () => [S, Actions<S, T, S>];
-    connectStore: <SP, AP>(mapStateToProps: MapStateToProps<S, SP>, mapActionsToProps: MapActionsToProps<S, T, AP>) => <C extends React.FunctionComponent<{}>, P = C extends React.FunctionComponent<infer CP> ? CP : never>(Component: C) => (props: Pick<P, Exclude<keyof P, keyof SP | keyof AP>>) => JSX.Element;
+    connectStore: <SP extends Partial<P>, AP extends Partial<P>, OP extends Partial<P>, P = SP & AP & OP>(Component: React.FunctionComponent<P>, mapStateToProps: MapStateToProps<S, SP, OP>, mapActionsToProps: MapActionsToProps<S, T, AP, OP>) => (props: Pick<P, Exclude<keyof P, keyof AP | keyof SP>>) => JSX.Element;
 };
 export {};

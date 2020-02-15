@@ -208,19 +208,18 @@ describe('index', () => {
     const initialState: State = {
       elements: [],
     };
-
-    const { StoreProvider, connectStore } = createStore(
-      {
-        elements: {
-          addElement: (element: DummyElement) => (state: string[]) => {
-            return [...state, element];
-          },
+    const reducers = {
+      elements: {
+        addElement: (element: DummyElement) => (state: string[]) => {
+          return [...state, element];
         },
       },
-      initialState
-    );
+    };
+
+    const { StoreProvider, connectStore } = createStore(reducers, initialState);
 
     interface DummyComponentProps {
+      ownExternalProp: string;
       externalProp: string;
       mostRecentElement?: DummyElement;
       addElement: (element: DummyElement) => void;
@@ -228,7 +227,7 @@ describe('index', () => {
 
     const DummyComponent: React.FunctionComponent<DummyComponentProps> = ({
       mostRecentElement,
-      externalProp,
+      ownExternalProp,
     }) => {
       if (!mostRecentElement) {
         return null;
@@ -236,21 +235,25 @@ describe('index', () => {
 
       return (
         <div>
-          {mostRecentElement.id} {externalProp} {mostRecentElement.value}
+          {mostRecentElement.id} {ownExternalProp} {mostRecentElement.value}
         </div>
       );
     };
 
+    const mapStateToProps = (state: State, ownProps: { externalProp: string }) => ({
+      ownExternalProp: `own-${ownProps.externalProp}`,
+      mostRecentElement: state.elements.length
+        ? state.elements[state.elements.length - 1]
+        : undefined,
+    });
+
     const ConnectedDummyComponent = connectStore(
-      state => ({
-        mostRecentElement: state.elements.length
-          ? state.elements[state.elements.length - 1]
-          : undefined,
-      }),
-      actions => ({
+      DummyComponent,
+      mapStateToProps,
+      (actions, ownProps) => ({
         addElement: actions.elements.addElement,
       })
-    )(DummyComponent);
+    );
 
     const wrapper = mount(
       <StoreProvider>
@@ -266,6 +269,6 @@ describe('index', () => {
     );
 
     wrapper.update();
-    expect(wrapper.text()).toBe('new-element externalPROP New element');
+    expect(wrapper.text()).toBe('new-element own-externalPROP New element');
   });
 });
