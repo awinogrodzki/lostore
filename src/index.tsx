@@ -65,7 +65,7 @@ type MapActionsToProps<S, T extends ActionReducers<S, T>, P> = (actions: Actions
 
 type ExcludeFromProps<P extends {}, EP extends {}> = Pick<P, Exclude<keyof P, keyof EP>>;
 
-export const createStoreHook = <S, T extends ActionReducers<S, T>>(
+export const createStore = <S, T extends ActionReducers<S, T>>(
   reducers: T,
   initialState: S,
   StoreContext: StoreContext<S> = createStoreContext(initialState),
