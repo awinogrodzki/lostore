@@ -13,11 +13,7 @@ import {
 import { createStoreContext } from './context';
 import { createStoreProvider } from './provider';
 
-const mapReducerCreatorToAction = <
-  S extends any,
-  T extends ActionReducerCreator<S, RS>,
-  RS = S
->(
+const mapReducerCreatorToAction = <S extends any, T extends ActionReducerCreator<S, RS>, RS = S>(
   reducerCreator: T,
   setState: SetState<S, RS>
 ): ActionCreator<T> => {
@@ -64,6 +60,11 @@ const mapReducersToActions = <S, RS, T>(
   };
 };
 
+type MapStateToProps<S, P> = (state: S) => P;
+type MapActionsToProps<S, T extends ActionReducers<S, T>, P> = (actions: Actions<S, T>) => P;
+
+type ExcludeFromProps<P extends {}, EP extends {}> = Pick<P, Exclude<keyof P, keyof EP>>;
+
 export const createStoreHook = <S, T extends ActionReducers<S, T>>(
   reducers: T,
   initialState: S,
@@ -88,5 +89,28 @@ export const createStoreHook = <S, T extends ActionReducers<S, T>>(
     return [state, actions];
   };
 
-  return [StoreProvider, useStore] as [typeof StoreProvider, typeof useStore];
+  const connectStore = <SP, AP>(
+    mapStateToProps: MapStateToProps<S, SP>,
+    mapActionsToProps: MapActionsToProps<S, T, AP>
+  ) => <
+    C extends React.FunctionComponent,
+    P = C extends React.FunctionComponent<infer CP> ? CP : never
+  >(
+    Component: C
+  ) => {
+    const MemoizedComponent = React.memo(Component);
+    type PropsWithoutActionAndStateProps = ExcludeFromProps<P, SP & AP>;
+
+    const ComponentContainer = (props: PropsWithoutActionAndStateProps) => {
+      const [state, actions] = useStore();
+      const stateProps = mapStateToProps(state);
+      const actionProps = mapActionsToProps(actions);
+
+      return <MemoizedComponent {...props} {...stateProps} {...actionProps} />;
+    };
+
+    return ComponentContainer;
+  };
+
+  return { StoreProvider, useStore, connectStore };
 };

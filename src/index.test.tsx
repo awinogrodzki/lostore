@@ -1,12 +1,14 @@
 import * as React from 'react';
 import { createStoreHook } from '.';
+import { act as domAct } from 'react-dom/test-utils';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { dispatchAndUpdate, dispatchAsyncAndUpdate } from './test/utils';
+import { mount } from 'enzyme';
 
 describe('index', () => {
   it('should return initial state', () => {
     const initialState = 'Hello world!';
-    const [StoreProvider, useStore] = createStoreHook({}, initialState);
+    const { StoreProvider, useStore } = createStoreHook({}, initialState);
     const wrapper: React.FunctionComponent = ({ children }) => (
       <StoreProvider>{children}</StoreProvider>
     );
@@ -17,7 +19,7 @@ describe('index', () => {
 
   it('should update state by calling action', () => {
     const initialState = 0;
-    const [StoreProvider, useStore] = createStoreHook(
+    const { StoreProvider, useStore } = createStoreHook(
       {
         increment: () => (state: number) => state + 1,
       },
@@ -36,7 +38,7 @@ describe('index', () => {
 
   it('should update state with async action', async () => {
     const initialState = 0;
-    const [StoreProvider, useStore] = createStoreHook(
+    const { StoreProvider, useStore } = createStoreHook(
       {
         increment: async () => (state: number) => state + 1,
       },
@@ -55,7 +57,7 @@ describe('index', () => {
 
   it('should throw error if used outside store provider', async () => {
     const initialState = 0;
-    const [, useStore] = createStoreHook(
+    const { useStore } = createStoreHook(
       {
         increment: async () => async (state: number) => state + 1,
       },
@@ -77,7 +79,7 @@ describe('index', () => {
 
   it('should set initial value to given initial state', async () => {
     const initialState = 'Initial state';
-    const [StoreProvider, useStore] = createStoreHook({}, initialState);
+    const { StoreProvider, useStore } = createStoreHook({}, initialState);
     const wrapper: React.FunctionComponent = ({ children }) => (
       <StoreProvider>{children}</StoreProvider>
     );
@@ -88,7 +90,7 @@ describe('index', () => {
 
   it('should prefer initial state given as store provider prop over the one given during hook creation', async () => {
     const initialState = 'Initial state';
-    const [StoreProvider, useStore] = createStoreHook({}, initialState);
+    const { StoreProvider, useStore } = createStoreHook({}, initialState);
     const wrapper: React.FunctionComponent = ({ children }) => (
       <StoreProvider initialState="Initial state from props">{children}</StoreProvider>
     );
@@ -100,7 +102,7 @@ describe('index', () => {
   it('should not overwrite state between updates', () => {
     const initialState: string[] = [];
 
-    const [StoreProvider, useStore] = createStoreHook(
+    const { StoreProvider, useStore } = createStoreHook(
       {
         addString: (value: string) => (state: string[]) => [...state, value],
       },
@@ -142,7 +144,7 @@ describe('index', () => {
       },
     };
 
-    const [StoreProvider, useStore] = createStoreHook(
+    const { StoreProvider, useStore } = createStoreHook(
       {
         count: {
           countStrings: () => (state: number, gridState: State) => {
@@ -196,5 +198,74 @@ describe('index', () => {
         },
       },
     });
+  });
+
+  it('should connect component to a store using connect higher order component in order to optimize renders', () => {
+    type DummyElement = { id: string; value: string };
+    type State = {
+      elements: DummyElement[];
+    };
+    const initialState: State = {
+      elements: [],
+    };
+
+    const { StoreProvider, connectStore } = createStoreHook(
+      {
+        elements: {
+          addElement: (element: DummyElement) => (state: string[]) => {
+            return [...state, element];
+          },
+        },
+      },
+      initialState
+    );
+
+    interface DummyComponentProps {
+      externalProp: string;
+      mostRecentElement?: DummyElement;
+      addElement: (element: DummyElement) => void;
+    }
+
+    const DummyComponent: React.FunctionComponent<DummyComponentProps> = ({
+      mostRecentElement,
+      externalProp,
+    }) => {
+      if (!mostRecentElement) {
+        return null;
+      }
+
+      return (
+        <div>
+          {mostRecentElement.id} {externalProp} {mostRecentElement.value}
+        </div>
+      );
+    };
+
+    const ConnectedDummyComponent = connectStore(
+      state => ({
+        mostRecentElement: state.elements.length
+          ? state.elements[state.elements.length - 1]
+          : undefined,
+      }),
+      actions => ({
+        addElement: actions.elements.addElement,
+      })
+    )(DummyComponent);
+
+    const wrapper = mount(
+      <StoreProvider>
+        <ConnectedDummyComponent externalProp="externalPROP" />
+      </StoreProvider>
+    );
+
+    domAct(() =>
+      (wrapper.find('Memo(DummyComponent)').prop('addElement') as (element: DummyElement) => void)({
+        id: 'new-element',
+        value: 'New element',
+      })
+    );
+
+    wrapper.update();
+    expect(wrapper.text()).toBe('new-element externalPROP New element');
   });
 });
