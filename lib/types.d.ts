@@ -11,7 +11,8 @@ export declare type Actions<S extends any, T extends any, RS = S> = {
 export interface StoreProviderProps<S> {
     initialState?: S;
 }
-export declare type SetState<S, RS> = (callback: (prevState: S, rootState: RS) => S) => void;
+export declare type SetStateCallback<S, RS> = (prevState: S, rootState: RS) => S;
+export declare type SetState<S, RS> = (callback: SetStateCallback<S, RS>) => void;
 export interface StoreContextValue<S> {
     state: S;
     setState: React.Dispatch<React.SetStateAction<S>>;
