@@ -8,8 +8,10 @@ export declare type PromiseOrVoid<T extends (...args: any) => any> = T extends P
 export declare type Actions<S extends any, T extends any, RS = S> = {
     [K in keyof T]: T[K] extends ActionReducerCreator<S[K], RS> ? (...args: Parameters<T[K]>) => PromiseOrVoid<ReturnType<T[K]>> : T[K] extends Actions<S[K], T[K]> ? Actions<S[K], T[K], RS> : never;
 };
+export declare type OnUpdate<S> = (state: S) => void | Promise<void>;
 export interface StoreProviderProps<S> {
-    initialState?: S;
+    prerenderedState?: S;
+    onUpdate?: OnUpdate<S>;
 }
 export declare type SetStateCallback<S, RS> = (prevState: S, rootState: RS) => S;
 export declare type SetState<S, RS> = (callback: SetStateCallback<S, RS>) => void;

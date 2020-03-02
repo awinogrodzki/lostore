@@ -26,8 +26,11 @@ export type Actions<S extends any, T extends any, RS = S> = {
     : never;
 };
 
+export type OnUpdate<S> = (state: S) => void | Promise<void>;
+
 export interface StoreProviderProps<S> {
-  initialState?: S;
+  prerenderedState?: S;
+  onUpdate?: OnUpdate<S>;
 }
 
 export type SetStateCallback<S, RS> = (prevState: S, rootState: RS) => S;

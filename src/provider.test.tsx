@@ -1,4 +1,7 @@
-import { isStateEqual } from './provider';
+import * as React from 'react';
+import { createStoreProvider, isStateEqual } from './provider';
+import { createStoreContext } from './context';
+import { shallow } from 'enzyme';
 
 describe('provider', () => {
   it('should render if state is different', () => {
@@ -31,5 +34,20 @@ describe('provider', () => {
 
   it('should render if a value has been removed from the state', () => {
     expect(isStateEqual(['one', 'two', 'three'], ['one', 'two'])).toBe(false);
+  });
+
+  it('should call onUpdate prop on state update with the current state', () => {
+    const StoreContext = createStoreContext('initial state');
+    const StoreProvider = createStoreProvider(StoreContext, 'initial state');
+    const onUpdate = jest.fn();
+    const wrapper = shallow(<StoreProvider onUpdate={onUpdate} />);
+
+    wrapper.prop('setState')('first');
+    wrapper.prop('setState')('second');
+    wrapper.prop('setState')((prevState: string) => `${prevState}.third`);
+
+    expect(onUpdate).toHaveBeenNthCalledWith(1, 'first');
+    expect(onUpdate).toHaveBeenNthCalledWith(2, 'second');
+    expect(onUpdate).toHaveBeenNthCalledWith(3, 'second.third');
   });
 });

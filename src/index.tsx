@@ -69,8 +69,6 @@ type MapActionsToProps<S, T extends ActionReducers<S, T>, P, OP> = (
 type ExcludeFromProps<P extends {}, EP extends {}> = Pick<P, Exclude<keyof P, keyof EP>>;
 type OwnProps<P, SP, AP> = ExcludeFromProps<P, AP & SP>;
 
-export type OnUpdate<S> = (state: S) => void | Promise<void>;
-
 export const createStore = <S, T extends ActionReducers<S, T>>(
   reducers: T,
   initialState: S,
@@ -80,20 +78,14 @@ export const createStore = <S, T extends ActionReducers<S, T>>(
     initialState
   )
 ) => {
-  const useStore = (onUpdate?: OnUpdate<S>): [S, Actions<S, T>] => {
+  const useStore = (): [S, Actions<S, T>] => {
     const { state, setState } = React.useContext(StoreContext);
 
     const actions = Object.entries<ActionReducerCreator | ActionReducers>(reducers).reduce(
       (aggr, [key, value]) =>
         mapReducersToActions(aggr, key, value, callback => {
           setState(prevState => {
-            const newState = callback(prevState, prevState);
-
-            if (typeof onUpdate === 'function') {
-              onUpdate(newState);
-            }
-
-            return newState;
+            return callback(prevState, prevState);
           });
         }),
 

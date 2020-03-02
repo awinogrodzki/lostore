@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1581808625152" clover="3.2.0">
-  <project timestamp="1581808625153" name="All files">
-    <metrics statements="76" coveredstatements="76" conditionals="25" coveredconditionals="23" methods="30" coveredmethods="30" elements="131" coveredelements="129" complexity="0" loc="76" ncloc="76" packages="2" files="5" classes="5"/>
+<coverage generated="1583162499260" clover="3.2.0">
+  <project timestamp="1583162499260" name="All files">
+    <metrics statements="92" coveredstatements="92" conditionals="29" coveredconditionals="27" methods="34" coveredmethods="34" elements="155" coveredelements="153" complexity="0" loc="92" ncloc="92" packages="2" files="5" classes="5"/>
     <package name="src">
-      <metrics statements="71" coveredstatements="71" conditionals="24" coveredconditionals="22" methods="27" coveredmethods="27"/>
+      <metrics statements="87" coveredstatements="87" conditionals="28" coveredconditionals="26" methods="31" coveredmethods="31"/>
       <file name="context.ts" path="/Users/a.winogrodzki/projects/lostore/src/context.ts">
         <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
-        <line num="1" count="1" type="stmt"/>
-        <line num="4" count="1" type="stmt"/>
-        <line num="5" count="9" type="stmt"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="10" type="stmt"/>
         <line num="8" count="1" type="stmt"/>
       </file>
       <file name="index.tsx" path="/Users/a.winogrodzki/projects/lostore/src/index.tsx">
-        <metrics statements="38" coveredstatements="38" conditionals="8" coveredconditionals="6" methods="17" coveredmethods="17"/>
+        <metrics statements="39" coveredstatements="39" conditionals="8" coveredconditionals="6" methods="17" coveredmethods="17"/>
         <line num="1" count="1" type="stmt"/>
         <line num="13" count="1" type="stmt"/>
         <line num="14" count="1" type="stmt"/>
@@ -42,18 +42,19 @@
         <line num="85" count="15" type="stmt"/>
         <line num="86" count="15" type="stmt"/>
         <line num="87" count="17" type="stmt"/>
-        <line num="93" count="14" type="stmt"/>
-        <line num="96" count="9" type="stmt"/>
-        <line num="107" count="1" type="stmt"/>
+        <line num="88" count="16" type="stmt"/>
+        <line num="95" count="14" type="stmt"/>
+        <line num="98" count="9" type="stmt"/>
         <line num="109" count="1" type="stmt"/>
-        <line num="110" count="2" type="stmt"/>
-        <line num="111" count="2" type="stmt"/>
+        <line num="111" count="1" type="stmt"/>
         <line num="112" count="2" type="stmt"/>
+        <line num="113" count="2" type="stmt"/>
         <line num="114" count="2" type="stmt"/>
-        <line num="118" count="9" type="stmt"/>
+        <line num="116" count="2" type="stmt"/>
+        <line num="120" count="9" type="stmt"/>
       </file>
       <file name="provider.tsx" path="/Users/a.winogrodzki/projects/lostore/src/provider.tsx">
-        <metrics statements="27" coveredstatements="27" conditionals="16" coveredconditionals="16" methods="7" coveredmethods="7"/>
+        <metrics statements="42" coveredstatements="42" conditionals="20" coveredconditionals="20" methods="11" coveredmethods="11"/>
         <line num="2" count="2" type="stmt"/>
         <line num="3" count="2" type="stmt"/>
         <line num="5" count="2" type="stmt"/>
@@ -71,16 +72,31 @@
         <line num="24" count="4" type="cond" truecount="2" falsecount="0"/>
         <line num="27" count="3" type="stmt"/>
         <line num="30" count="2" type="stmt"/>
-        <line num="34" count="9" type="stmt"/>
-        <line num="35" count="13" type="stmt"/>
-        <line num="36" count="13" type="stmt"/>
-        <line num="38" count="5" type="stmt"/>
-        <line num="41" count="9" type="stmt"/>
-        <line num="42" count="13" type="stmt"/>
-        <line num="43" count="13" type="stmt"/>
-        <line num="45" count="13" type="cond" truecount="2" falsecount="0"/>
-        <line num="47" count="13" type="stmt"/>
-        <line num="54" count="9" type="stmt"/>
+        <line num="32" count="19" type="stmt"/>
+        <line num="34" count="2" type="stmt"/>
+        <line num="38" count="10" type="stmt"/>
+        <line num="39" count="13" type="stmt"/>
+        <line num="40" count="13" type="stmt"/>
+        <line num="42" count="5" type="stmt"/>
+        <line num="45" count="10" type="stmt"/>
+        <line num="46" count="17" type="stmt"/>
+        <line num="47" count="17" type="stmt"/>
+        <line num="48" count="17" type="stmt"/>
+        <line num="50" count="17" type="cond" truecount="2" falsecount="0"/>
+        <line num="51" count="17" type="stmt"/>
+        <line num="52" count="19" type="cond" truecount="2" falsecount="0"/>
+        <line num="53" count="16" type="stmt"/>
+        <line num="56" count="3" type="stmt"/>
+        <line num="59" count="17" type="stmt"/>
+        <line num="60" count="19" type="stmt"/>
+        <line num="61" count="19" type="cond" truecount="2" falsecount="0"/>
+        <line num="62" count="17" type="stmt"/>
+        <line num="63" count="17" type="stmt"/>
+        <line num="64" count="17" type="stmt"/>
+        <line num="67" count="2" type="stmt"/>
+        <line num="68" count="2" type="stmt"/>
+        <line num="72" count="17" type="stmt"/>
+        <line num="79" count="10" type="stmt"/>
       </file>
       <file name="utils.ts" path="/Users/a.winogrodzki/projects/lostore/src/utils.ts">
         <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>

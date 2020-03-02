@@ -27,6 +27,10 @@ export const isStateEqual = <S extends any>(prevState: S, nextState: S) => {
   return false;
 };
 
+const isCallback = <S extends any>(
+  callback: React.SetStateAction<S>
+): callback is (prevState: S) => S => typeof callback === 'function';
+
 export const createStoreProvider = <S extends any>(
   StoreContext: StoreContext<S>,
   initialState: S
@@ -40,12 +44,33 @@ export const createStoreProvider = <S extends any>(
 
   const StoreProvider: React.FunctionComponent<StoreProviderProps<S>> = ({
     children,
-    initialState: initialStateFromProps,
+    prerenderedState,
+    onUpdate,
   }) => {
-    const [state, setState] = React.useState(initialStateFromProps ?? initialState);
+    const [state, setState] = React.useState(prerenderedState ?? initialState);
+    const handleUpdate = (state: S) => {
+      if (typeof onUpdate !== 'function') {
+        return;
+      }
+
+      onUpdate(state);
+    };
+
+    const handleSetState = (callback: React.SetStateAction<S>) => {
+      setState(prevState => {
+        if (isCallback(callback)) {
+          const newState = callback(prevState);
+          handleUpdate(newState);
+          return newState;
+        }
+
+        handleUpdate(callback);
+        return callback;
+      });
+    };
 
     return (
-      <MemoizedStoreProvider state={state} setState={setState}>
+      <MemoizedStoreProvider state={state} setState={handleSetState}>
         {children}
       </MemoizedStoreProvider>
     );
