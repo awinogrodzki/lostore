@@ -122,6 +122,31 @@ describe('index', () => {
     expect(result.current[0]).toEqual(['first string', 'second string', 'third string']);
   });
 
+  it('should call on update callback on each state update with updated state', () => {
+    const initialState: string[] = [];
+    const onUpdate = jest.fn();
+    const { StoreProvider, useStore } = createStore(
+      {
+        addString: (value: string) => (state: string[]) => [...state, value],
+      },
+      initialState
+    );
+    const wrapper: React.FunctionComponent = ({ children }) => (
+      <StoreProvider>{children}</StoreProvider>
+    );
+    const { result } = renderHook(() => useStore(onUpdate), { wrapper });
+
+    dispatchAndUpdate(() => {
+      result.current[1].addString('first string');
+      result.current[1].addString('second string');
+      result.current[1].addString('third string');
+    });
+
+    expect(onUpdate).toHaveBeenNthCalledWith(1, ['first string']);
+    expect(onUpdate).toHaveBeenNthCalledWith(2, ['first string', 'second string']);
+    expect(onUpdate).toHaveBeenNthCalledWith(3, ['first string', 'second string', 'third string']);
+  });
+
   it('should combine multiple action reducers', () => {
     type State = {
       count: number;
@@ -197,6 +222,81 @@ describe('index', () => {
           y: 17,
         },
       },
+    });
+  });
+
+  it('should call on update callback on state update with updated root state', () => {
+    type State = {
+      count: number;
+      strings: string[];
+    };
+    const initialState: State = {
+      count: 0,
+      strings: [],
+    };
+    const onUpdate = jest.fn();
+    const { StoreProvider, useStore } = createStore(
+      {
+        count: {
+          countStrings: () => (state: number, gridState: State) => {
+            return gridState.strings.length;
+          },
+        },
+        strings: {
+          addString: (value: string) => (state: string[], gridState: State) => {
+            return [...state, `${value}-${gridState.count}`];
+          },
+        },
+      },
+      initialState
+    );
+    const wrapper: React.FunctionComponent = ({ children }) => (
+      <StoreProvider>{children}</StoreProvider>
+    );
+    const { result } = renderHook(() => useStore(onUpdate), { wrapper });
+
+    dispatchAndUpdate(() => {
+      result.current[1].strings.addString('string');
+      result.current[1].count.countStrings();
+      result.current[1].strings.addString('string');
+      result.current[1].count.countStrings();
+      result.current[1].strings.addString('string');
+      result.current[1].count.countStrings();
+      result.current[1].strings.addString('string');
+      result.current[1].count.countStrings();
+    });
+
+    expect(onUpdate).toHaveBeenNthCalledWith(1, {
+      strings: ['string-0'],
+      count: 0,
+    });
+    expect(onUpdate).toHaveBeenNthCalledWith(2, {
+      strings: ['string-0'],
+      count: 1,
+    });
+    expect(onUpdate).toHaveBeenNthCalledWith(3, {
+      strings: ['string-0', 'string-1'],
+      count: 1,
+    });
+    expect(onUpdate).toHaveBeenNthCalledWith(4, {
+      strings: ['string-0', 'string-1'],
+      count: 2,
+    });
+    expect(onUpdate).toHaveBeenNthCalledWith(5, {
+      strings: ['string-0', 'string-1', 'string-2'],
+      count: 2,
+    });
+    expect(onUpdate).toHaveBeenNthCalledWith(6, {
+      strings: ['string-0', 'string-1', 'string-2'],
+      count: 3,
+    });
+    expect(onUpdate).toHaveBeenNthCalledWith(7, {
+      strings: ['string-0', 'string-1', 'string-2', 'string-3'],
+      count: 3,
+    });
+    expect(onUpdate).toHaveBeenNthCalledWith(8, {
+      strings: ['string-0', 'string-1', 'string-2', 'string-3'],
+      count: 4,
     });
   });
 

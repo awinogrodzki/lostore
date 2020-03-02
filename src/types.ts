@@ -30,7 +30,8 @@ export interface StoreProviderProps<S> {
   initialState?: S;
 }
 
-export type SetState<S, RS> = (callback: (prevState: S, rootState: RS) => S) => void;
+export type SetStateCallback<S, RS> = (prevState: S, rootState: RS) => S;
+export type SetState<S, RS> = (callback: SetStateCallback<S, RS>) => void;
 
 export interface StoreContextValue<S> {
   state: S;
