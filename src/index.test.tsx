@@ -248,12 +248,11 @@ describe('index', () => {
     });
 
     const ConnectedDummyComponent = connectStore(
-      DummyComponent,
       mapStateToProps,
       (actions, ownProps) => ({
         addElement: actions.elements.addElement,
       })
-    );
+    )(DummyComponent);
 
     const wrapper = mount(
       <StoreProvider>

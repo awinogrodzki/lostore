@@ -101,11 +101,10 @@ export const createStore = <S, T extends ActionReducers<S, T>>(
     OP extends Partial<P>,
     P extends {} = SP & AP & OP
   >(
-    Component: React.FunctionComponent<P>,
     mapStateToProps: MapStateToProps<S, SP, OP>,
     mapActionsToProps: MapActionsToProps<S, T, AP, OP>,
     propsAreEqual?: (prevProps: P, nextProps: P) => boolean
-  ) => {
+  ) => (Component: React.FunctionComponent<P>) => {
     const MemoizedComponent = React.memo(Component, propsAreEqual);
 
     return (props: OwnProps<P, SP, AP>) => {
