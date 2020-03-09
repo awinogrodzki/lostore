@@ -27,51 +27,29 @@ export const isStateEqual = <S extends any>(prevState: S, nextState: S) => {
   return false;
 };
 
-const isCallback = <S extends any>(
-  callback: React.SetStateAction<S>
-): callback is (prevState: S) => S => typeof callback === 'function';
-
-export const createStoreProvider = <S extends any>(
-  StoreContext: StoreContext<S>,
-  initialState: S
-) => {
+export const createStoreProvider = <S extends any, T>(StoreContext: StoreContext<S>) => {
   const MemoizedStoreProvider = React.memo<StoreContextValue<S> & { children: React.ReactNode }>(
-    ({ state, setState, children }) => {
-      return <StoreContext.Provider value={{ state, setState }}>{children}</StoreContext.Provider>;
+    ({ state, store, children }) => {
+      return <StoreContext.Provider value={{ state, store }}>{children}</StoreContext.Provider>;
     },
     (prevProps, nextProps) =>
-      isStateEqual(prevProps.state, nextProps.state) && prevProps.setState === nextProps.setState
+      isStateEqual(prevProps.state, nextProps.state) && nextProps.store === prevProps.store
   );
 
-  const StoreProvider: React.FunctionComponent<StoreProviderProps<S>> = ({
-    children,
-    prerenderedState,
-    onUpdate,
-  }) => {
-    const [state, setState] = React.useState(prerenderedState ?? initialState);
-    const handleUpdate = (state: S) => {
-      if (typeof onUpdate !== 'function') {
-        return;
-      }
+  const StoreProvider: React.FunctionComponent<StoreProviderProps<S>> = ({ children, store }) => {
+    const [state, setState] = React.useState(store.getState());
+    const onStateUpdate = (state: S) => setState(state);
 
-      onUpdate(state);
-    };
+    React.useEffect(() => {
+      const unsubscribe = store.subscribe(onStateUpdate);
 
-    const handleSetState = (callback: React.SetStateAction<S>) => {
-      setState(prevState => {
-        if (isCallback(callback)) {
-          const newState = callback(prevState);
-          handleUpdate(newState);
-          return newState;
-        }
-
-        handleUpdate(callback);
-        return callback;
-      });
-    };
+      return () => {
+        unsubscribe();
+      };
+    }, [store]);
 
     return (
-      <MemoizedStoreProvider state={state} setState={handleSetState}>
+      <MemoizedStoreProvider state={state} store={store}>
         {children}
       </MemoizedStoreProvider>
     );

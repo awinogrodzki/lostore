@@ -1,13 +1,14 @@
-import { createContext } from "react";
-import { StoreContextValue } from "./types";
+import { createContext } from 'react';
+import { StoreContextValue } from './types';
+import { Store } from './store';
 
 export const createStoreContext = <S extends any>(initialState: S) => {
   return createContext<StoreContextValue<S>>({
     state: initialState,
-    setState: () => {
+    get store(): Store<S> {
       throw new Error(
-        'useStore hook used outside StoreProvider. Please make sure you have wrapped components that use useStore hook with StoreProvider.'
+        'StoreContext used outside StoreProvider. Please make sure you have wrapped components that use useStore hook with StoreProvider.'
       );
     },
   });
-}
+};

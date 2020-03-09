@@ -7,56 +7,39 @@ import {
   StoreProviderProps,
   ActionReducerCreator,
   ActionCreator,
-  SetState,
   PromiseOrVoid,
 } from './types';
 import { createStoreContext } from './context';
 import { createStoreProvider } from './provider';
+import { createStore, Store } from './store';
 
-const mapReducerCreatorToAction = <S extends any, T extends ActionReducerCreator<S, RS>, RS = S>(
+const mapReducerCreatorToAction = <S, T extends ActionReducerCreator<S>>(
   reducerCreator: T,
-  setState: SetState<S, RS>
+  store: Store<S>
 ): ActionCreator<T> => {
   return (...args: Parameters<T>): PromiseOrVoid<T> => {
-    const reducer: ActionReducer<S, RS> | Promise<ActionReducer<S, RS>> = reducerCreator(...args);
+    const reducer: ActionReducer<S> | Promise<ActionReducer<S>> = reducerCreator(...args);
 
     if (reducer instanceof Promise) {
       return reducer.then(reducerFromPromise => {
-        setState((currentState, rootState) => reducerFromPromise(currentState, rootState));
+        store.setState(reducerFromPromise(store.getState()));
       }) as PromiseOrVoid<T>;
     }
 
-    setState((currentState, rootState) => reducer(currentState, rootState));
+    store.setState(reducer(store.getState()));
     return undefined as PromiseOrVoid<T>;
   };
 };
 
-const mapReducersToActions = <S, RS, T>(
+const mapReducersToActions = <S, T extends ActionReducers<S>>(
   actions: Actions<S, T>,
   typeOrGroupKey: string,
-  reducerCreatorOrReducers: ActionReducerCreator | ActionReducers,
-  setState: SetState<S, RS>
+  reducerCreator: ActionReducerCreator<S>,
+  store: Store<S>
 ): Actions<S, T> => {
-  if (typeof reducerCreatorOrReducers === 'function') {
-    return {
-      ...actions,
-      [typeOrGroupKey]: mapReducerCreatorToAction(reducerCreatorOrReducers, setState),
-    };
-  }
-
-  const setChildState = (key: string) => (callback: (prevState: S, rootState: RS) => S) => {
-    setState((prevState, rootState) => {
-      return { ...prevState, [key]: callback(prevState[key], rootState) };
-    });
-  };
-
   return {
     ...actions,
-    [typeOrGroupKey]: Object.entries(reducerCreatorOrReducers).reduce(
-      (childActions, [key, value]) =>
-        mapReducersToActions(childActions, key, value, setChildState(typeOrGroupKey)),
-      {}
-    ),
+    [typeOrGroupKey]: mapReducerCreatorToAction(reducerCreator, store),
   };
 };
 
@@ -69,26 +52,17 @@ type MapActionsToProps<S, T extends ActionReducers<S, T>, P, OP> = (
 type ExcludeFromProps<P extends {}, EP extends {}> = Pick<P, Exclude<keyof P, keyof EP>>;
 type OwnProps<P, SP, AP> = ExcludeFromProps<P, AP & SP>;
 
-export const createStore = <S, T extends ActionReducers<S, T>>(
+export const createHookStore = <S, T extends ActionReducers<S, T>>(
   reducers: T,
   initialState: S,
   StoreContext: StoreContext<S> = createStoreContext(initialState),
-  StoreProvider: React.FunctionComponent<StoreProviderProps<S>> = createStoreProvider(
-    StoreContext,
-    initialState
-  )
+  StoreProvider: React.FunctionComponent<StoreProviderProps<S>> = createStoreProvider(StoreContext)
 ) => {
   const useStore = (): [S, Actions<S, T>] => {
-    const { state, setState } = React.useContext(StoreContext);
+    const { state, store } = React.useContext(StoreContext);
 
-    const actions = Object.entries<ActionReducerCreator | ActionReducers>(reducers).reduce(
-      (aggr, [key, value]) =>
-        mapReducersToActions(aggr, key, value, callback => {
-          setState(prevState => {
-            return callback(prevState, prevState);
-          });
-        }),
-
+    const actions = Object.entries<ActionReducerCreator<S>>(reducers).reduce(
+      (aggr, [key, value]) => mapReducersToActions(aggr, key, value, store),
       {} as Actions<S, T>
     );
 
@@ -116,5 +90,12 @@ export const createStore = <S, T extends ActionReducers<S, T>>(
     };
   };
 
-  return { StoreProvider, useStore, connectStore };
+  return {
+    StoreProvider,
+    useStore,
+    connectStore,
+    createStore: (prerenderedState: S = initialState) => {
+      return createStore(prerenderedState);
+    },
+  };
 };
