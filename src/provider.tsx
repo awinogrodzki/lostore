@@ -39,7 +39,8 @@ export const createStoreProvider = <S extends any>(
     ({ state, setState, children }) => {
       return <StoreContext.Provider value={{ state, setState }}>{children}</StoreContext.Provider>;
     },
-    (prevProps, nextProps) => isStateEqual(prevProps.state, nextProps.state)
+    (prevProps, nextProps) =>
+      isStateEqual(prevProps.state, nextProps.state) && prevProps.setState === nextProps.setState
   );
 
   const StoreProvider: React.FunctionComponent<StoreProviderProps<S>> = ({
