@@ -1,3 +1,5 @@
+import { isStateEqual } from "./utils";
+
 export type Listener<S> = (state: S) => any;
 export type Unsubscribe = () => any;
 
@@ -10,6 +12,10 @@ export class Store<S> {
   }
 
   public setState(state: S) {
+    if (isStateEqual(this.state, state)) {
+      return;
+    }
+
     this.state = state;
     this.publish();
   }
