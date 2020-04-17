@@ -16,8 +16,6 @@ export class Store<S> {
       return;
     }
 
-    console.log('NOT IS EQUAL', state, this.state);
-
     this.state = state;
     this.publish();
   }
