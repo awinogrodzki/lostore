@@ -10,6 +10,7 @@ export const createStoreProvider = <S extends any, T>(StoreContext: StoreContext
 
     React.useEffect(() => {
       const unsubscribe = store.subscribe(onStateUpdate);
+      setState(store.getState());
 
       return () => {
         unsubscribe();
