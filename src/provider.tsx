@@ -17,9 +17,7 @@ export const createStoreProvider = <S extends any, T>(StoreContext: StoreContext
       };
     }, [store]);
 
-    return (
-      <StoreContext.Provider value={{ state, store }}>{children}</StoreContext.Provider>
-    );
+    return <StoreContext.Provider value={{ state, store }}>{children}</StoreContext.Provider>;
   };
 
   return StoreProvider;

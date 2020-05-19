@@ -3,8 +3,6 @@ import {
   ActionReducers,
   Actions,
   ActionReducer,
-  StoreContext,
-  StoreProviderProps,
   ActionReducerCreator,
   ActionCreator,
   PromiseOrVoid,
@@ -54,10 +52,10 @@ type OwnProps<P, SP, AP> = ExcludeFromProps<P, AP & SP>;
 
 export const createHookStore = <S, T extends ActionReducers<S, T>>(
   reducers: T,
-  initialState: S,
-  StoreContext: StoreContext<S> = createStoreContext(initialState),
-  StoreProvider: React.FunctionComponent<StoreProviderProps<S>> = createStoreProvider(StoreContext)
+  initialState: S
 ) => {
+  const StoreContext = createStoreContext();
+  const StoreProvider = createStoreProvider(StoreContext);
   const useStore = (): [S, Actions<S, T>] => {
     const { state, store } = React.useContext(StoreContext);
 
@@ -91,6 +89,7 @@ export const createHookStore = <S, T extends ActionReducers<S, T>>(
   };
 
   return {
+    StoreContext,
     StoreProvider,
     useStore,
     connectStore,
