@@ -56,7 +56,7 @@ export const createHookStore = <S, T extends ActionReducers<S, T>>(
 ) => {
   const StoreContext = createStoreContext();
   const StoreProvider = createStoreProvider(StoreContext);
-  const useStore = (): [S, Actions<S, T>] => {
+  const useStore = (): [S, Actions<S, T>, Store<S>] => {
     const { state, store } = React.useContext(StoreContext);
 
     const actions = Object.entries<ActionReducerCreator<S>>(reducers).reduce(
@@ -64,7 +64,7 @@ export const createHookStore = <S, T extends ActionReducers<S, T>>(
       {} as Actions<S, T>
     );
 
-    return [state, actions];
+    return [state, actions, store];
   };
 
   const connectStore = <
