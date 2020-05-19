@@ -6,7 +6,7 @@ declare type MapActionsToProps<S, T extends ActionReducers<S, T>, P, OP> = (acti
 export declare const createHookStore: <S, T extends ActionReducers<S, T>>(reducers: T, initialState: S) => {
     StoreContext: React.Context<import("./types").StoreContextValue<any>>;
     StoreProvider: React.FunctionComponent<import("./types").StoreProviderProps<any>>;
-    useStore: () => [S, Actions<S, T>];
+    useStore: () => [S, Actions<S, T>, Store<S>];
     connectStore: <SP extends Partial<P>, AP extends Partial<P>, OP extends Partial<P>, P extends {} = SP & AP & OP>(mapStateToProps: MapStateToProps<S, SP, OP>, mapActionsToProps: MapActionsToProps<S, T, AP, OP>, propsAreEqual?: ((prevProps: P, nextProps: P) => boolean) | undefined) => (Component: React.FunctionComponent<P>) => (props: Pick<P, Exclude<keyof P, keyof AP | keyof SP>>) => JSX.Element;
     createStore: (prerenderedState?: S) => Store<S>;
 };
