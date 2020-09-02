@@ -1,6 +1,6 @@
 {
   "name": "lostore",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "description": "A decentralized state container for React applications",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
