@@ -3,6 +3,7 @@
   "version": "0.7.5",
   "description": "A decentralized state container for React applications",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "build": "rm -rf lib && tsc",
     "test": "jest src --coverage"
